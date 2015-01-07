@@ -33,8 +33,8 @@ public:
 	static string& trim( string& );
 
 private:
-	vector<string> split( string& , const char& );
-	vector<string> split( string& , const string& );
+	static vector<string> split( string& , const char& );
+	static vector<string> split( string& , const string& );
 
 };
 

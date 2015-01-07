@@ -34,7 +34,7 @@ void first_follow_set::fill_first_set( vector<production> &ps , terminals &t )
 				string &LHS = it->LHS;
 
 				set<string> first = find_first( it->RHS );
-				int oldsize = first_set[ LHS ].size();
+				size_t oldsize = first_set[ LHS ].size();
 				first_set[ LHS ].insert( first.begin() , first.end() );
 				if( first_set[ LHS ].size() != oldsize )
 					changes = true;
@@ -52,7 +52,7 @@ set<string> first_follow_set::find_first( vector<string>& X )
 	else
 	{
 		res = first_set[ X.front() ];
-		int i;
+		size_t i;
 		for( i = 1 ; i < X.size() && hasNil(first_set[X[i-1]]) ; ++i )
 		{
 			set<string> first = first_set[ X[i] ];
@@ -83,7 +83,7 @@ void first_follow_set::fill_follow_set( vector<production> &ps , terminals &t )
 				{
 					vector<string> beta( iter+1 , it->RHS.end() );
 					set<string> first = find_first( beta );
-					int oldsize = follow_set[ x ].size();
+					size_t oldsize = follow_set[ x ].size();
 
 					if( FAILURE == first.erase( NIL ) ) 
 					{	// means erase nothing , so no lambda here	

@@ -2,7 +2,6 @@
 #define LH
 
 #include <iostream>
-#include <sstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -18,9 +17,12 @@
 #include "ffset.h"
 
 #define for_it(a,b) for( auto a = b.begin() ; a != b.end() ; ++a )
+#define hasEle(a,b) a.find(b) != a.end()
 
 #define SUCCESS 1
 #define FAILURE 0
+
+#define END_SYM "$"
 
 using std::map;
 using std::vector;
@@ -32,43 +34,34 @@ using std::deque;
 class ll {
 public:
 
-	ll( vector<production>& , terminals& , first_follow_set& );
+	ll( vector<production>& , first_follow_set& );
 	void parse( vector<production>& , terminals& , first_follow_set& , deque<string> );
-	set<string> find_predict_set( production& , terminals& , first_follow_set& );
+	static set<string> find_predict_set( production& , first_follow_set& );
+	
 	void print();
-	void printStack( vector<string>& );
-	void printDeque( deque<string>& );
+	static void printStack( vector<string>& );
+	static void printDeque( deque<string>& );
+
+	void dfs( vector<production>& , 
+			  terminals& ,
+			  first_follow_set& ,
+			  deque<string>& ,
+			  string ,
+			  int ,
+			  string 
+			);
+
+	void parse_dfs( vector<production>& , 
+			  terminals& ,
+			  first_follow_set& ,
+			  deque<string> 
+			);
+
+	void drawTree();
 
 private:
 	map<string ,map<string,production>> table;
+	vector<string> tree;
 };
-
-
-class node {
-	public:
-	string s;
-	string end;
-	int pos;
-	vector<node> child;
-
-	node(string ss)
-	{ s = ss; }
-
-void treePrint( node& t )
-{
-	cout << "s: " << t.s;
-	if( t.end != "" )
-	{
-		cout << "end: " << endl;
-		return;
-	}
-
-	for( int i = 0 ; i < t.child.size() ; ++i )
-		treePrint( t.child[i] );
-}
-
-
-};
-
 
 #endif

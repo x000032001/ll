@@ -1,10 +1,10 @@
 #include "ll.h"
 
-ll::ll( vector<production> &ps , terminals &t , first_follow_set &f )
+ll::ll( vector<production> &ps , first_follow_set &f )
 {
 	for_it( it , ps )
 	{
-		set<string> pset = find_predict_set( *it , t , f );
+		set<string> pset = find_predict_set( *it , f );
 
 		for_it( iter , pset )
 		{
@@ -16,11 +16,10 @@ ll::ll( vector<production> &ps , terminals &t , first_follow_set &f )
 				cout << p.ruleNum << ":" << p.origin << endl;
 				cout << "but I am trying to fill rule:" << endl;
 				cout << (it->ruleNum) << ":" << (it->origin) << endl;
+				exit(1);
 			}
-			else
-			{
-				table[ it->LHS ][ *iter ] = *it;
-			}
+			
+			table[ it->LHS ][ *iter ] = *it;
 		}
 	}
 }
@@ -29,6 +28,8 @@ void ll::parse( vector<production> &ps , terminals &t , first_follow_set &f , de
 {
 	vector<string> pool;
 	pool.push_back( ps[0].LHS );
+
+	deque<string> context_c(context);
 
 	while( !pool.empty() && !context.empty() )
 	{
@@ -96,7 +97,10 @@ void ll::parse( vector<production> &ps , terminals &t , first_follow_set &f , de
 	}
 
 	if( context.size() == 0 && pool.size() == 0 )
+	{
 		puts("context accepted.");
+		parse_dfs( ps , t , f , context_c );
+	}
 	else
 	{
 		puts("context NOT accepted.");
@@ -107,7 +111,85 @@ void ll::parse( vector<production> &ps , terminals &t , first_follow_set &f , de
 	}
 }
 
-set<string> ll::find_predict_set( production &p , terminals &t , first_follow_set &f )
+
+void ll::parse_dfs( vector<production> &ps , 
+		  terminals &t ,
+		  first_follow_set &f ,
+		  deque<string> context
+		)
+{
+	tree.clear();
+
+	cout << " parsing tree =================================" << endl;
+	dfs( ps , t , f , context , ps[0].LHS , 0 , "- " );
+
+	drawTree();
+	//for_it( it , tree )
+		//cout << (*it) << endl;
+	cout << " ==============================================" << endl;
+}
+
+void ll::drawTree()
+{
+	char map[100][100] = {};
+
+	for( size_t i = 0 ; i < tree.size() ; ++i )
+	{
+		size_t j;
+		for( j = 0 ; j < tree[i].size() ; ++j )
+			map[i][j] = tree[i][j];
+		map[i][j] = '\n';
+	}
+
+	for( int i = 0 ; i < 100 ; ++i )
+		for( int j = 0 ; map[i][j]  ; ++j )
+			putchar( map[i][j] );
+}
+
+void ll::dfs( vector<production> &ps , 
+		  terminals &t ,
+		  first_follow_set &f ,
+		  deque<string> &context ,
+		  string ntp ,
+		  int depth ,
+		  string prefix
+		)
+{
+		if( context.size() == 0 )
+			return;
+
+		string nt = ntp;
+		string code = context.front();
+
+
+		if( nt == code )
+		{
+			tree.push_back( 
+				string(prefix + nt + " == " + code)  );
+			context.pop_front();
+		}
+		else if( !t.isTerminal(nt) &&
+				 hasEle( table[nt] , code ) )
+		{
+			tree.push_back( 
+				string(prefix + nt)  );
+			prefix = "   " + prefix;
+
+
+			production &p = table[nt][code];
+
+			for_it( it , p.RHS )
+			{
+					if( *it != NIL )
+						dfs( ps , t , f , context , *it , depth+1 , prefix );
+					else
+						tree.push_back( 
+							string(prefix + NIL + " == " + NIL)  );
+			}
+		}
+}
+
+set<string> ll::find_predict_set( production &p , first_follow_set &f )
 {
 	set<string> res;
 	set<string> first = f.find_first( p.RHS );
@@ -130,7 +212,7 @@ void ll::print()
 			column.insert( iter->first );
 	}
 
-	for( int i = 0 ; i < (column.size()+1)*9-1 ; ++i )
+	for( size_t i = 0 ; i < (column.size()+1)*9-1 ; ++i )
 		putchar('-');
 	putchar('\n');
 
@@ -139,7 +221,7 @@ void ll::print()
 		cout << "|" << (*iter) << "\t";
 	cout << "|" << endl;
 
-	for( int i = 0 ; i < (column.size()+1)*9-1 ; ++i )
+	for( size_t i = 0 ; i < (column.size()+1)*9-1 ; ++i )
 		putchar('-');
 	putchar('\n');
 
@@ -159,7 +241,7 @@ void ll::print()
 		cout << "|" << endl;
 	}
 
-	for( int i = 0 ; i < (column.size()+1)*9-1 ; ++i )
+	for( size_t i = 0 ; i < (column.size()+1)*9-1 ; ++i )
 		putchar('-');
 	putchar('\n');
 

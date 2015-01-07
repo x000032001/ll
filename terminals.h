@@ -27,7 +27,7 @@ public:
 	bool isTerminal( const string& );
 	bool isNullable( const string& );
 	void print();
-	void printContainer( const string& , const set<string>& );
+	static void printContainer( const string& , const set<string>& );
 	bool isInTerminal( const string& );
 	bool isInNonTerminal( const string& );
 

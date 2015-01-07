@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-m64 -msse4.2 -msse4.1 -msse4 -std=c++11 $(DEF)
+CXXFLAGS=-Wall -Wextra -m64 -msse4.2 -msse4.1 -msse4 -std=c++11 $(DEF)
 LDFLAGS=
 
 

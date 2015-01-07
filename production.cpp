@@ -64,7 +64,7 @@ vector<string> production::split( string& str ,  const char& delim )
 
 vector<string> production::split( string& str , const string& delim )
 {
-	int pos = str.find( delim );
+	size_t pos = str.find( delim );
 
 	if( pos == string::npos )
 	{

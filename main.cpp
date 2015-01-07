@@ -31,6 +31,8 @@ vector<string> readfile( const char* name )
 	while( fgets( buff , 256 , fin ) )
 		res.push_back( string(buff) );
 
+	fclose(fin);
+
 	return res;
 }
 
@@ -71,6 +73,8 @@ deque<string> readcode( const char* name , const char* delim )
 		}
 	}
 
+	fclose(fin);
+
 	return res;
 }
 
@@ -81,7 +85,7 @@ int main()
 	const string prod_delim = ">";
 	const char rhs_delim = ' ';
 
-	vector<string> raw = readfile("grammer");
+	vector<string> raw = readfile("grammer.txt");
 	vector<production> ps = readcfg( raw , prod_delim , rhs_delim );
 
 	cout << "terminals result ===================" << endl;
@@ -95,17 +99,16 @@ int main()
 	cout << "====================================" << endl;
 
 	cout << " ll table result ===================" << endl;
-	ll l( ps , t , f );
+	ll l( ps , f );
 	for_it( it , ps )
 		printf("  (%2d). %s" , it->ruleNum , it->origin.c_str() );
 	cout << endl;
 	l.print();
 	cout << "====================================" << endl;
 
-	deque<string> context = readcode( "code" , code_delim );
+	deque<string> context = readcode( "code.txt" , code_delim );
 
 	l.parse( ps , t , f , context );
-
 		
 	return 0;
 }

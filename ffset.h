@@ -33,7 +33,7 @@ public:
 	set<string> find_first( vector<string>& );
 	void fill_follow_set( vector<production>& , terminals& );
 	void print();
-	void printContainer( const string& , const map<string,set<string>>& );
+	static void printContainer( const string& , const map<string,set<string>>& );
 	
 };
 
