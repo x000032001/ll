@@ -28,13 +28,22 @@ class first_follow_set {
 public:
 	map<string,set<string>> first_set , follow_set;
 
-	first_follow_set( vector<production>& , terminals& );
-	void fill_first_set( vector<production>& , terminals& );
+	first_follow_set(){;}
+	first_follow_set( vector<production>& );
+
 	set<string> find_first( vector<string>& );
-	void fill_follow_set( vector<production>& , terminals& );
+
+	bool isTerminal( const string& );
+	bool isNullable( const string& );
+
 	void print();
 	static void printContainer( const string& , const map<string,set<string>>& );
-	
+
+private:
+	terminals t;
+
+	void fill_first_set( vector<production>& );
+	void fill_follow_set( vector<production>& );
 };
 
 

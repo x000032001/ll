@@ -8,7 +8,7 @@ production::production()
 	ruleNum = UNINIT_NUM;
 }
 
-production::production( string& str , int num , const string& delimL , const char& delimR )
+production::production( string str , int num , const string& delimL , const char& delimR )
 {
 	ruleNum = num;
 	origin = str;

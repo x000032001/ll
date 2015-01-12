@@ -2,6 +2,7 @@
 #define LH
 
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -30,38 +31,34 @@ using std::set;
 using std::cout;
 using std::endl;
 using std::deque;
+using std::ostream;
 
 class ll {
 public:
 
-	ll( vector<production>& , first_follow_set& );
-	void parse( vector<production>& , terminals& , first_follow_set& , deque<string> );
-	static set<string> find_predict_set( production& , first_follow_set& );
+	ll( vector<production>& );
+	void parse( const string& , deque<string> );
 	
 	void print();
-	static void printStack( vector<string>& );
-	static void printDeque( deque<string>& );
+	static void printStack( ostream& , vector<string>& );
+	static void printDeque( ostream& , deque<string>& );
 
-	void dfs( vector<production>& , 
-			  terminals& ,
-			  first_follow_set& ,
+	void dfs( 
 			  deque<string>& ,
 			  string ,
-			  int ,
 			  string 
 			);
 
-	void parse_dfs( vector<production>& , 
-			  terminals& ,
-			  first_follow_set& ,
+	void parse_dfs( 
+			  const string& ,
 			  deque<string> 
 			);
 
-	void drawTree();
-
 private:
 	map<string ,map<string,production>> table;
-	vector<string> tree;
+	first_follow_set f;
+	
+	set<string> find_predict_set( production& );
 };
 
 #endif

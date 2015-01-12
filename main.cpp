@@ -14,7 +14,7 @@
 
 using namespace std;
 
-vector<string> readfile( const char* name )
+vector<production> readcfg( const char* name , const string& a , const char& b )
 {
 	FILE* fin = fopen( name , "r" );
 	
@@ -26,22 +26,27 @@ vector<string> readfile( const char* name )
 	
 	char buff[256] = {};
 	
-	vector<string> res;
+	vector<production> res;
 
+	int count = 1;
 	while( fgets( buff , 256 , fin ) )
-		res.push_back( string(buff) );
+	{
+		res.push_back(production( string(buff) , count++ , a , b ));	
+	}
 
 	fclose(fin);
 
-	return res;
-}
+#ifdef DEBUG
+	for_it( it , res )
+	{
+		printf("  (%2d)LHS=%s\n\t\tRHS=" , it->ruleNum , it->LHS.c_str() );
+		for_it( itr , it->RHS )
+			printf("%s,",itr->c_str());
+		printf("\n");
+	}
 
-vector<production> readcfg( vector<string> &raw , const string& a , const char& b )
-{
-	vector<production> res;
-	int count = 1;
-	for_it( it , raw )
-		res.push_back(production( *it , count++ , a , b ));	
+	cout << endl;
+#endif
 
 	return res;
 }
@@ -81,34 +86,16 @@ deque<string> readcode( const char* name , const char* delim )
 
 int main()
 {
-	const char code_delim[] = " ;"; // only use in code split
-	const string prod_delim = ">";
-	const char rhs_delim = ' ';
+	const char		code_delim[]= " " ; // only use in code split
+	const string	prod_delim	= ">" ;
+	const char		rhs_delim	= ' ' ;
+	const char*		grammer		= "grammer.txt" ;
+	const char*		code		= "code.txt" ;
 
-	vector<string> raw = readfile("grammer.txt");
-	vector<production> ps = readcfg( raw , prod_delim , rhs_delim );
+	vector<production> productions = readcfg( grammer , prod_delim , rhs_delim );
+	deque<string> context = readcode( code , code_delim );
 
-	cout << "terminals result ===================" << endl;
-	terminals t(ps);
-	t.print();
-	cout << "====================================" << endl;
-
-	cout << "first and follow set result ========" << endl;
-	first_follow_set f( ps , t );
-	f.print();
-	cout << "====================================" << endl;
-
-	cout << " ll table result ===================" << endl;
-	ll l( ps , f );
-	for_it( it , ps )
-		printf("  (%2d). %s" , it->ruleNum , it->origin.c_str() );
-	cout << endl;
-	l.print();
-	cout << "====================================" << endl;
-
-	deque<string> context = readcode( "code.txt" , code_delim );
-
-	l.parse( ps , t , f , context );
+	ll( productions ).parse( productions[0].LHS , context );
 		
 	return 0;
 }

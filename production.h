@@ -27,7 +27,7 @@ public:
 	int ruleNum;
 
 	production();
-	production( string& , int , const string& , const char& );
+	production( string , int , const string& , const char& );
 
 	void print();
 	static string& trim( string& );

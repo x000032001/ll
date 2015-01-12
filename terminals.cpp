@@ -73,9 +73,11 @@ bool terminals::isNullable( const string &str )
 
 void terminals::print()
 {
+	cout << "terminals ==========================" << endl;
 	printContainer( "Terminals:" , terms );
 	printContainer( "Non-Terminals:" , nonterms );
 	printContainer( "Nullable:" , nullable );
+	cout << "====================================" << endl;
 }
 
 void terminals::printContainer( const string &hint , const set<string> &con )

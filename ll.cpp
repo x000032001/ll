@@ -1,10 +1,13 @@
 #include "ll.h"
 
-ll::ll( vector<production> &ps , first_follow_set &f )
+ll::ll( vector<production> &ps )
+	: f( first_follow_set(ps) )
 {
+	//f = first_follow_set(ps);
+	
 	for_it( it , ps )
 	{
-		set<string> pset = find_predict_set( *it , f );
+		set<string> pset = find_predict_set( *it );
 
 		for_it( iter , pset )
 		{
@@ -22,37 +25,46 @@ ll::ll( vector<production> &ps , first_follow_set &f )
 			table[ it->LHS ][ *iter ] = *it;
 		}
 	}
+
+	print();
+
 }
 
-void ll::parse( vector<production> &ps , terminals &t , first_follow_set &f , deque<string> context )
+void ll::parse( const string& start_symbol , deque<string> context )
 {
 	vector<string> pool;
-	pool.push_back( ps[0].LHS );
+	pool.push_back( start_symbol );
 
 	deque<string> context_c(context);
 
+#ifndef DEBUG
+std::fstream fout( "/dev/null" , std::fstream::out );
+#else
+ostream &fout = cout;
+#endif
+
 	while( !pool.empty() && !context.empty() )
 	{
-		puts("----Status------------------------------------");
-		printStack(pool);
-		printDeque(context);
+		fout<<"----Status------------------------------------"<<endl;
+		printStack(fout,pool);
+		printDeque(fout,context);
 
 		string nt = pool.back();
 		string code = context.front();
-		cout << "current Non-terminal:(" << nt << ")\t" << "terminal symbol:(" << code << ")" << endl;
-		puts("----Action------------------------------------");
+		fout << "current Non-terminal:(" << nt << ")\t" << "terminal symbol:(" << code << ")" << endl;
+		fout<<"----Action------------------------------------"<<endl;
 
 		if( nt == code )
 		{
-			cout << "- Match symbol (" << code << ")" << endl;
+			fout << "- Match symbol (" << code << ")" << endl;
 			pool.pop_back();
 			context.pop_front();
 		}
-		else if( !t.isTerminal(nt) &&
+		else if( !f.isTerminal(nt) &&
 				table[nt].find(code) != table[nt].end() )
 		{
 			production &p = table[nt][code];
-			cout << "- Apply rule (" << p.ruleNum << ")." << p.origin;
+			fout << "- Apply rule (" << p.ruleNum << ")." << p.origin;
 			pool.pop_back();
 
 			for( auto it = p.RHS.rbegin() ; it != p.RHS.rend() ; ++it )
@@ -63,13 +75,13 @@ void ll::parse( vector<production> &ps , terminals &t , first_follow_set &f , de
 				}
 				else
 				{
-					cout << "--- Ignore null in rhs" << endl;
+					fout << "--- Ignore null in rhs" << endl;
 				}
 			}
 		}
-		else if( table[nt].find( NIL ) != table[nt].end() || t.isNullable(nt) )
+		else if( table[nt].find( NIL ) != table[nt].end() || f.isNullable(nt) )
 		{
-			cout << "- REMOVE null (shouldn't do this)." << endl;
+			fout << "- REMOVE null (shouldn't do this)." << endl;
 			pool.pop_back();
 		}
 		else
@@ -77,81 +89,60 @@ void ll::parse( vector<production> &ps , terminals &t , first_follow_set &f , de
 			puts("- ERROR no action can do. exited.");
 			return;
 		}
-		puts("----------------------------------------------\n");
+		fout << "----------------------------------------------\n" << endl;
 	}
 
 	while( !pool.empty() )
 	{
 		string nt = pool.back();
-		cout << " WARN: still not empty in stack (" << nt << ")" << endl;
-		if( table[nt].find( NIL ) != table[nt].end() || t.isNullable(nt) )
+		fout << " WARN: still not empty in stack (" << nt << ")" << endl;
+		if( table[nt].find( NIL ) != table[nt].end() || f.isNullable(nt) )
 		{
 			pool.pop_back();
-			cout << "    " << nt << "has been removed." << endl;
+			fout << "    " << nt << "has been removed." << endl;
 		}
 		else
 		{
-			cout << "    " << nt << "is not null. exited." << endl;
+			fout << "    " << nt << "is not null. exited." << endl;
 			break;
 		}
 	}
 
 	if( context.size() == 0 && pool.size() == 0 )
 	{
-		puts("context accepted.");
-		parse_dfs( ps , t , f , context_c );
+		puts("===================");
+		puts("|context accepted.|");
+		puts("===================");
+		parse_dfs( start_symbol , context_c );
 	}
 	else
 	{
-		puts("context NOT accepted.");
+		puts("=======================");
+		puts("|context NOT accepted.|");
+		puts("=======================");
 		puts("----Status-----------------------------------");
-		printStack(pool);
-		printDeque(context);
+		printStack(cout,pool);
+		printDeque(cout,context);
 		puts("---------------------------------------------");
 	}
 }
 
 
-void ll::parse_dfs( vector<production> &ps , 
-		  terminals &t ,
-		  first_follow_set &f ,
-		  deque<string> context
+void ll::parse_dfs( 
+					const string& start_symbol ,
+				    deque<string> context
 		)
 {
-	tree.clear();
 
 	cout << " parsing tree =================================" << endl;
-	dfs( ps , t , f , context , ps[0].LHS , 0 , "- " );
+	dfs( context , start_symbol , "- " );
 
-	drawTree();
-	//for_it( it , tree )
-		//cout << (*it) << endl;
 	cout << " ==============================================" << endl;
 }
 
-void ll::drawTree()
-{
-	char map[100][100] = {};
-
-	for( size_t i = 0 ; i < tree.size() ; ++i )
-	{
-		size_t j;
-		for( j = 0 ; j < tree[i].size() ; ++j )
-			map[i][j] = tree[i][j];
-		map[i][j] = '\n';
-	}
-
-	for( int i = 0 ; i < 100 ; ++i )
-		for( int j = 0 ; map[i][j]  ; ++j )
-			putchar( map[i][j] );
-}
-
-void ll::dfs( vector<production> &ps , 
-		  terminals &t ,
-		  first_follow_set &f ,
+void ll::dfs(  
 		  deque<string> &context ,
 		  string ntp ,
-		  int depth ,
 		  string prefix
 		)
 {
@@ -164,15 +155,13 @@ void ll::dfs( vector<production> &ps ,
 
 		if( nt == code )
 		{
-			tree.push_back( 
-				string(prefix + nt + " == " + code)  );
+			cout << prefix << nt << " == " << code << endl;
 			context.pop_front();
 		}
-		else if( !t.isTerminal(nt) &&
+		else if( !f.isTerminal(nt) &&
 				 hasEle( table[nt] , code ) )
 		{
-			tree.push_back( 
-				string(prefix + nt)  );
+			cout << prefix << nt << endl;
 			prefix = "   " + prefix;
 
 
@@ -181,15 +170,14 @@ void ll::dfs( vector<production> &ps ,
 			for_it( it , p.RHS )
 			{
 					if( *it != NIL )
-						dfs( ps , t , f , context , *it , depth+1 , prefix );
+						dfs( context , *it , prefix );
 					else
-						tree.push_back( 
-							string(prefix + NIL + " == " + NIL)  );
+						cout << prefix << NIL << " == " << NIL << endl;
 			}
 		}
 }
 
-set<string> ll::find_predict_set( production &p , first_follow_set &f )
+set<string> ll::find_predict_set( production &p )
 {
 	set<string> res;
 	set<string> first = f.find_first( p.RHS );
@@ -204,6 +192,7 @@ set<string> ll::find_predict_set( production &p , first_follow_set &f )
 
 void ll::print()
 {
+	cout << " ll table result ===================" << endl;
 	set<string> column;
 
 	for_it( it , table )
@@ -245,31 +234,32 @@ void ll::print()
 		putchar('-');
 	putchar('\n');
 
+	cout << "====================================" << endl;
 
 }
 
-void ll::printStack( vector<string> &stk )
+void ll::printStack( ostream &out , vector<string> &stk )
 {
-	cout << "Stack :" << endl;
-	cout << "bottom [ ";
+	out << "Stack :" << endl;
+	out << "bottom [ ";
 	for_it( it , stk )
 	{
-		cout << "\t" << (*it);
+		out << "\t" << (*it);
 	}
-	cout << " ] top";
-	cout << endl;
+	out << " ] top";
+	out << endl;
 }
 
-void ll::printDeque( deque<string> &que )
+void ll::printDeque( ostream &out , deque<string> &que )
 {
-	cout << "Queue :" << endl;
-	cout << "front [ ";
+	out << "Queue :" << endl;
+	out << "front [ ";
 	for_it( it , que )
 	{
-		cout << "\t" << (*it);
+		out << "\t" << (*it);
 	}
-	cout << " ] back";
-	cout << endl;
+	out << " ] back";
+	out << endl;
 }
 
 

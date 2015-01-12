@@ -1,13 +1,23 @@
 #include "ffset.h"
 
 
-first_follow_set::first_follow_set( vector<production> &ps , terminals &t )
+first_follow_set::first_follow_set( vector<production> &ps )
+	: t( terminals(ps) )
 {
-	fill_first_set(ps,t);
-	fill_follow_set(ps,t);
+	//t = terminals(ps);
+#ifdef DEBUG
+	t.print();
+#endif
+
+	fill_first_set(ps);
+	fill_follow_set(ps);
+
+#ifdef DEBUG
+	print();
+#endif
 }
 
-void first_follow_set::fill_first_set( vector<production> &ps , terminals &t )
+void first_follow_set::fill_first_set( vector<production> &ps )
 {
 	for_it( it , ps )
 	{
@@ -69,7 +79,7 @@ set<string> first_follow_set::find_first( vector<string>& X )
 	return res;
 }
 
-void first_follow_set::fill_follow_set( vector<production> &ps , terminals &t )
+void first_follow_set::fill_follow_set( vector<production> &ps )
 {
 	bool changes = false;
 	do {
@@ -103,10 +113,22 @@ void first_follow_set::fill_follow_set( vector<production> &ps , terminals &t )
 	} while( changes );
 }
 
+bool first_follow_set::isTerminal( const string &str )
+{
+	return t.isTerminal(str);
+}
+
+bool first_follow_set::isNullable( const string &str )
+{
+	return t.isNullable(str);
+}
+
 void first_follow_set::print()
 {
+	cout << "first and follow set ===============" << endl;
 	printContainer( "first" , first_set );
 	printContainer( "follow" , follow_set );
+	cout << "====================================" << endl;
 }
 
 void first_follow_set::printContainer( const string &hint , const map<string,set<string>> &con )

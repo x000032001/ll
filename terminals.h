@@ -22,6 +22,7 @@ using std::set;
 class terminals {
 public:
 
+	terminals(){;}
 	terminals( vector<production>& );
 	void deriveNull( vector<production>& );
 	bool isTerminal( const string& );
